@@ -1,0 +1,31 @@
+= How not to write tests — 'Unit' Testing in .NET: Revising classic approach to unit testing and finding pitfalls in it. Improving code and tests based on TDD and BDD approaches.
+
+== Description
+
+== Agenda
+
+. Key takeaways (lightning talk version)
+  ..
+
+
+
+
+
+
+== Things to talk about
+. Only test requirements
+. What is 'unit'
+. What should be isolated in unit testing (tests, not class)
+. Benefits of red-green-refactor
+. Tests are needed for refactoring to keep code clean
+. why mocks are bad
+. less tests = less time
+. refactoring shouldn't break any tests
+. less mocks = less tests breaking
+. don't test implementation details
+. what should be mocked -> external stuff: files, database, web
+. maybe something about good developers write bad tests
+. test naming
+. ioc in tests - yay or nay
+
+
