@@ -4,17 +4,14 @@
 :revealjs_slideNumber: c/t
 :revealjs_controls: false
 :customcss: nc-template.css
+:source-highlighter: highlightjs
+:revealjs_width: 1400
 
 Revising classic approach to unit testing and finding pitfalls in it.
 Improving code and tests based on TDD and BDD approaches.
 
-== Description
-
 == Agenda
 
-. $ whoami
-. Glossary
-. Recommendations
 . Key takeaways (lightning talk version)
 . But why?
 . Characteristics of classic unit tests
@@ -25,16 +22,27 @@ Improving code and tests based on TDD and BDD approaches.
 
 == Recommendations
 
-== 🚀 DevTernity 2017: Ian Cooper - TDD, Where Did It All Go Wrong
+=== 🚀 DevTernity 2017: Ian Cooper - TDD, Where Did It All Go Wrong
 video::EZ05e7EMOLM[youtube]
 
-== https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530['Test Driven Development: By Example' by Kent Beck]
+=== https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530['Test Driven Development: By Example' by Kent Beck]
 
-image::kent-beck.jpg[]
+image::kent-beck.jpg[height=220px]
 
-== https://mtlynch.io/good-developers-bad-tests/[Why Good Developers Write Bad Unit Tests]
+https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530[]
+
+=== https://mtlynch.io/good-developers-bad-tests/[Why Good Developers Write Bad Unit Tests]
 
 image::good-developers-write-bad-tests.jpg[]
+
+https://mtlynch.io/good-developers-bad-tests/[]
+
+== $ whoami
+
+* Software developer for only 6.5 years
+* Hacker wanna-be
+* Author of small coding/security blog - https://matishadow-blog.gear.host/posts/[link]
+* All other links https://about.me/matishadow[here]
 
 == Key takeaways
 * Write a test when a new requirement comes, not when you create new class/method.
@@ -42,28 +50,57 @@ image::good-developers-write-bad-tests.jpg[]
 * Use mocks only when super necessary i.e., with databases, network, files etc.
 * TDD lets you focus on one thing at a time. First working solution then good design.
 
-== !
+=== !
 * Good test shouldn't break when refactoring the code.
 * Isolate tests from each other, not classes.
 * When using hexagonal architecture test only ports/use cases.
 
+== Glossary
+* Refactoring - Changing implementation details without changing the behavior.
+* TDD -
+* BDD -
+* Design Patterns -
+
+== But why?
+* Refactoring
+* Certeinty that it works
+* Good documentation
+
 == Characteristics of classic unit tests
 
+== Problems
+
+== Band-aids
+
+== 'Good developers write bad tests'
+
+== Benefits of TDD flow
+Explain RGR
+
+Cannot do two things at once
 
 == Things to talk about
+. Have as few tests as possible
+. Why people don't like writing tests (too much time to write them, and they break)
 . Only test requirements
-. What is 'unit'
+. When testing think about API of the software and test the API (bacause API should not change often)
+. wrtie test when new requirements, not when new class/method
+. What is 'unit' (it's a module)
 . What should be isolated in unit testing (tests, not class)
 . Benefits of red-green-refactor
 . Tests are needed for refactoring to keep code clean
 . why mocks are bad
+. SUT - system under test is not a class, it's a module
 . less tests = less time
 . refactoring shouldn't break any tests
 . less mocks = less tests breaking
 . don't test implementation details
 . what should be mocked -> external stuff: files, database, web
+. don't couple your tests to your code
 . maybe something about good developers write bad tests
 . test naming
 . ioc in tests - yay or nay
+. ioc is overused
+. red test should equal to broken requirement or changed requirement
 
 
