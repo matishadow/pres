@@ -2,20 +2,34 @@
 :revealjs_theme: white
 :icons: font
 :revealjs_slideNumber: c/t
-:revealjs_controls: false
+:revealjs_controls: true
 :customcss: nc-template.css
 :source-highlighter: highlightjs
 :revealjs_width: 1400
+:revealjs_hash: true
 
 Revising classic approach to unit testing and finding pitfalls in it.
 Improving code and tests based on TDD and BDD approaches.
 
+== $ whoami
+
+* Software developer for 6.5 years
+* Hacker wanna-be
+* Author of small coding/security blog - https://matishadow-blog.gear.host/posts/[link]
+* All other links https://about.me/matishadow[here]
+
+== Assumptions
+
+* You know .NET Core
+* You wrote at least a couple of unit tests
+* You have an open mind
+
 == Agenda
 
 . Key takeaways (lightning talk version)
-. But why?
+. But why do we need tests?
 . Characteristics of classic unit tests
-. Problems
+. Problems with classic unit tests
 . Band-aids
 . 'Good developers write bad tests'
 . Benefits of TDD flow
@@ -37,49 +51,53 @@ image::good-developers-write-bad-tests.jpg[]
 
 https://mtlynch.io/good-developers-bad-tests/[]
 
-== $ whoami
-
-* Software developer for only 6.5 years
-* Hacker wanna-be
-* Author of small coding/security blog - https://matishadow-blog.gear.host/posts/[link]
-* All other links https://about.me/matishadow[here]
-
 == Key takeaways
+
+[%step]
 * Write a test when a new requirement comes, not when you create new class/method.
-* Use encapsulation in a module. Keep implementation details in private classes, test only public ones.
+* Use encapsulation in a module. Keep implementation details in internal classes, test only public ones.
 * Use mocks only when super necessary i.e., with databases, network, files etc.
-* TDD lets you focus on one thing at a time. First working solution then good design.
 
 === !
+
+[%step]
+* TDD lets you focus on one thing at a time. First working solution then good design.
 * Good test shouldn't break when refactoring the code.
 * Isolate tests from each other, not classes.
 * When using hexagonal architecture test only ports/use cases.
 
 == Glossary
+
+[%step]
 * Refactoring - Changing implementation details without changing the behavior.
-* TDD -
+* TDD (Test Driven Development) - Approach in which first you write failing test,
+  then you write ugly code to make it pass, and then you refactor the code to make it less ugly.
 * BDD -
 * Design Patterns -
 
-== But why?
-* Refactoring
-* Certeinty that it works
-* Good documentation
+== But why do we need tests?
+
+[%step]
+* Certainty that the project works (less time testing manually)
+* Safe refactoring
+* Good tests are living documentation
 
 == Characteristics of classic unit tests
 
-== Problems
+== Problems with classic unit tests
 
 == Band-aids
 
 == 'Good developers write bad tests'
 
 == Benefits of TDD flow
-Explain RGR
 
-Cannot do two things at once
+[%step]
+* Red-Green-Refactor
+* Our brain cannot focus on two things at once
 
 == Things to talk about
+. Code coverage
 . Have as few tests as possible
 . Why people don't like writing tests (too much time to write them, and they break)
 . Only test requirements
