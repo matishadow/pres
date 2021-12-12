@@ -84,7 +84,17 @@ https://mtlynch.io/good-developers-bad-tests/[]
 
 == Characteristics of classic unit tests
 
+* Classes isolated from each other
+* Mocked all class dependencies
+* Each class tested separately
+* Code coverage as important metric
+
 == Problems with classic unit tests
+
+* It takes too much time to write tests for every class
+* It takes too much time to mock all class dependencies
+* Tests break with each refactoring because of mocks
+* Tests being green despite not meeting business requirements
 
 == Band-aids
 
@@ -98,8 +108,6 @@ https://mtlynch.io/good-developers-bad-tests/[]
 
 == Things to talk about
 . Code coverage
-. Have as few tests as possible
-. Why people don't like writing tests (too much time to write them, and they break)
 . Only test requirements
 . When testing think about API of the software and test the API (bacause API should not change often)
 . wrtie test when new requirements, not when new class/method
@@ -120,5 +128,7 @@ https://mtlynch.io/good-developers-bad-tests/[]
 . ioc in tests - yay or nay
 . ioc is overused
 . red test should equal to broken requirement or changed requirement
+. link and qr code at the end
+
 
 
