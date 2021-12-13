@@ -98,6 +98,15 @@ https://mtlynch.io/good-developers-bad-tests/[]
 
 == Band-aids
 
+* Write one test per one requirement
+* Use mocks only with external dependencies like files, databases, web
+* Don't isolate classes from each other
+* Don't mock dependencies within a module, `new` them up or use `IoC` in the test
+* Use `internal` classes for implementation details and don't test them
+* Treat module as an API, test only public classes it exposes
+* Give tests names, which convey what business requirement is under test
+* Isolate tests, so they don't use the same resource e.g., database
+
 == 'Good developers write bad tests'
 
 == Benefits of TDD flow
@@ -107,27 +116,6 @@ https://mtlynch.io/good-developers-bad-tests/[]
 * Our brain cannot focus on two things at once
 
 == Things to talk about
-. Code coverage
-. Only test requirements
-. When testing think about API of the software and test the API (bacause API should not change often)
-. wrtie test when new requirements, not when new class/method
-. What is 'unit' (it's a module)
-. What should be isolated in unit testing (tests, not class)
-. Benefits of red-green-refactor
-. Tests are needed for refactoring to keep code clean
-. why mocks are bad
-. SUT - system under test is not a class, it's a module
-. less tests = less time
-. refactoring shouldn't break any tests
-. less mocks = less tests breaking
-. don't test implementation details
-. what should be mocked -> external stuff: files, database, web
-. don't couple your tests to your code
-. maybe something about good developers write bad tests
-. test naming
-. ioc in tests - yay or nay
-. ioc is overused
-. red test should equal to broken requirement or changed requirement
 . link and qr code at the end
 
 
