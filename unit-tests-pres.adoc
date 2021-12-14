@@ -14,9 +14,13 @@ Improving code and tests based on TDD and BDD approaches.
 == $ whoami
 
 * Software developer for 6.5 years
+* Senior Specialist at Netcompany since December 2020
+** Various Modulus projects
+** Covid tracking tool - Smitte|stop
+** Currently working on FIFA projects
 * Hacker wanna-be
-* Author of small coding/security blog - https://matishadow-blog.gear.host/posts/[link]
-* All other links https://about.me/matishadow[here]
+//* Author of small coding/security blog - https://matishadow-blog.gear.host/posts/[link]
+//* All other links https://about.me/matishadow[here]
 
 == Assumptions
 
@@ -24,32 +28,17 @@ Improving code and tests based on TDD and BDD approaches.
 * You wrote at least a couple of unit tests
 * You have an open mind
 
+=== Poll — Have you written at least a couple of unit tests?
+
 == Agenda
 
-. Key takeaways (lightning talk version)
+. Key takeaways
 . But why do we need tests?
 . Characteristics of classic unit tests
 . Problems with classic unit tests
 . Band-aids
 . 'Good developers write bad tests'
 . Benefits of TDD flow
-
-== Recommendations
-
-=== 🚀 DevTernity 2017: Ian Cooper - TDD, Where Did It All Go Wrong
-video::EZ05e7EMOLM[youtube]
-
-=== https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530['Test Driven Development: By Example' by Kent Beck]
-
-image::kent-beck.jpg[height=220px]
-
-https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530[]
-
-=== https://mtlynch.io/good-developers-bad-tests/[Why Good Developers Write Bad Unit Tests]
-
-image::good-developers-write-bad-tests.jpg[]
-
-https://mtlynch.io/good-developers-bad-tests/[]
 
 == Key takeaways
 
@@ -72,40 +61,187 @@ https://mtlynch.io/good-developers-bad-tests/[]
 * Refactoring - Changing implementation details without changing the behavior.
 * TDD (Test Driven Development) - Approach in which first you write failing test,
   then you write ugly code to make it pass, and then you refactor the code to make it less ugly.
-* BDD -
-* Design Patterns -
+* BDD - TDD focused on the customer reviewing tests with tools like `Cucumber`.
 
 == But why do we need tests?
 
-[%step]
-* Certainty that the project works (less time testing manually)
-* Safe refactoring
-* Good tests are living documentation
+=== Certainty that the project works (less time testing manually)
+=== !
+image::https://i.stack.imgur.com/uq7Gh.png[]
+
+=== !
+image::https://i.imgur.com/BNUw2OU.png[]
+
+=== Safe refactoring
+
+=== !
+
+[source, csharp, indent=0, highlight='1..*|8']
+----
+        public virtual decimal GetDiscountAmount(Discount discount, decimal amount)
+        {
+            if (discount == null)
+                throw new ArgumentNullException(nameof(discount));
+
+            decimal result;
+            if (discount.UsePercentage)
+                result = (decimal)((float)amount * (float)discount.DiscountPercentage / 100f);
+            else
+                result = discount.DiscountAmount;
+
+            if (discount.UsePercentage &&
+                discount.MaximumDiscountAmount.HasValue &&
+                result > discount.MaximumDiscountAmount.Value)
+                result = discount.MaximumDiscountAmount.Value;
+
+            if (result < decimal.Zero)
+                result = decimal.Zero;
+
+            return result;
+        }
+----
+
+=== !
+
+[source, csharp, indent=0]
+----
+        private static decimal DiscountDiscountPercentage(Discount discount, decimal amount)
+        {
+            return (decimal)((float)amount * (float)discount.DiscountPercentage / 100f);
+        }
+----
+
+[source, csharp, indent=0, highlight='1..*|8']
+----
+        public virtual decimal GetDiscountAmount(Discount discount, decimal amount)
+        {
+            if (discount == null)
+                throw new ArgumentNullException(nameof(discount));
+
+            decimal result;
+            if (discount.UsePercentage)
+                result = DiscountDiscountPercentage(discount, amount);
+            else
+                result = discount.DiscountAmount;
+
+            if (discount.UsePercentage &&
+                discount.MaximumDiscountAmount.HasValue &&
+                result > discount.MaximumDiscountAmount.Value)
+                result = discount.MaximumDiscountAmount.Value;
+
+            if (result < decimal.Zero)
+                result = decimal.Zero;
+
+            return result;
+        }
+
+        private static decimal DiscountDiscountPercentage(Discount discount, decimal amount)
+        {
+            return (decimal)((float)amount * (float)discount.DiscountPercentage / 100f);
+        }
+----
+
+=== !
+
+[source,csharp, indent=0]
+----
+        [Test]
+        public void CanCalculateDiscountAmountPercentage()
+        {
+            var discount = new Discount { UsePercentage = true, DiscountPercentage = 30 };
+
+            _discountService.GetDiscountAmount(discount, 100).Should().Be(30);
+
+            discount.DiscountPercentage = 60;
+            _discountService.GetDiscountAmount(discount, 200).Should().Be(120);
+        }
+----
+
+=== !
+image::https://i.imgur.com/I6xU63F.png[]
+
+=== Good tests are living documentation
+
+[source, csharp, indent=0, highlight='1..*|7|8|11|13..15|17..18']
+----
+        [Test]
+        public void MaximumDiscountAmountIsUsed()
+        {
+            var discount = new Discount
+            {
+                UsePercentage = true,
+                DiscountPercentage = 30,
+                MaximumDiscountAmount = 3.4M
+            };
+
+            _discountService.GetDiscountAmount(discount, 100).Should().Be(3.4M);
+
+            discount.DiscountPercentage = 60;
+            _discountService.GetDiscountAmount(discount, 200).Should().Be(3.4M);
+            _discountService.GetDiscountAmount(discount, 100).Should().Be(3.4M);
+
+            discount.DiscountPercentage = 1;
+            discount.GetDiscountAmount(200).Should().Be(2);
+        }
+----
 
 == Characteristics of classic unit tests
 
-* Classes isolated from each other
-* Mocked all class dependencies
-* Each class tested separately
-* Code coverage as important metric
+=== Classes isolated from each other
+=== Mocked all class dependencies
+=== Each class tested separately
+=== Code coverage as important metric
+
+=== Poll — Do you write tests in this way?
 
 == Problems with classic unit tests
 
-* It takes too much time to write tests for every class
-* It takes too much time to mock all class dependencies
-* Tests break with each refactoring because of mocks
-* Tests being green despite not meeting business requirements
+=== It takes too much time to write tests for every class
+=== It takes too much time to mock all class dependencies
+=== Tests break with each refactoring because of mocks
+=== Tests being green despite not meeting business requirements
+
+=== Poll — Have you had any of these problems?
 
 == Band-aids
+=== Use mocks only with external dependencies like files, databases, web
+=== Don't isolate classes from each other
+=== Don't mock dependencies within a module, `new` them up or use `IoC` in the test
+=== Use `internal` classes for implementation details and don't test them
+=== Treat module as an API, test only public classes it exposes
+=== Give tests names, which convey what business requirement is under test
+=== Isolate tests, so they don't use the same resource e.g., database
 
-* Write one test per one requirement
-* Use mocks only with external dependencies like files, databases, web
-* Don't isolate classes from each other
-* Don't mock dependencies within a module, `new` them up or use `IoC` in the test
-* Use `internal` classes for implementation details and don't test them
-* Treat module as an API, test only public classes it exposes
-* Give tests names, which convey what business requirement is under test
-* Isolate tests, so they don't use the same resource e.g., database
+=== Write one test per one requirement
+
+=== Example 1
+[source,csharp, indent=0]
+----
+    [TestFixture]
+    public class DiscountServiceTests : ServiceTest
+    {
+        private IDiscountPluginManager _discountPluginManager;
+        private IDiscountService _discountService;
+
+        [OneTimeSetUp]
+        public void SetUp()
+        {
+            _discountPluginManager = GetService<IDiscountPluginManager>();
+            _discountService = GetService<IDiscountService>();
+        }
+
+        [Test]
+        public void CanCalculateDiscountAmountPercentage()
+        {
+            var discount = new Discount { UsePercentage = true, DiscountPercentage = 30 };
+
+            _discountService.GetDiscountAmount(discount, 100).Should().Be(30);
+
+            discount.DiscountPercentage = 60;
+            _discountService.GetDiscountAmount(discount, 200).Should().Be(120);
+        }
+    }
+----
 
 == 'Good developers write bad tests'
 
@@ -119,4 +255,31 @@ https://mtlynch.io/good-developers-bad-tests/[]
 . link and qr code at the end
 
 
+== Recommendations
+
+=== 🚀 DevTernity 2017: Ian Cooper - TDD, Where Did It All Go Wrong
+video::EZ05e7EMOLM[youtube]
+
+=== https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530['Test Driven Development: By Example' by Kent Beck]
+
+image::kent-beck.jpg[height=220px]
+
+https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530[]
+
+=== https://mtlynch.io/good-developers-bad-tests/[Why Good Developers Write Bad Unit Tests]
+
+image::good-developers-write-bad-tests.jpg[]
+
+https://mtlynch.io/good-developers-bad-tests/[]
+
+
+== TODO
+
+. include repo link
+. add NC info about project and title, maybe add timeline,
+. Add NC introduction
+. Add example also to 'why do we need tests?'
+. Move recomendations to the back
+. think more visuals
+. adjust logo and color
 
