@@ -1,0 +1,574 @@
+= How not to write tests — 'Unit' Testing in .NET
+:revealjs_theme: white
+:icons: font
+:revealjs_slideNumber: c/t
+:revealjs_controls: true
+:customcss: nc-template.css
+:source-highlighter: highlightjs
+:revealjs_width: 1400
+:revealjs_hash: true
+:imagesdir: images
+:highlightjs-theme: vs2015.css
+
+Revising classic approach to unit testing and finding pitfalls in it.
+Improving code and tests based on TDD and BDD approaches.
+
+[.columns]
+== $ whoami
+
+[.column]
+--
+image::me.jpg[400,400, align="center"]
+--
+
+[.column]
+--
+* Software developer for 6.5 years
+* Senior Specialist at Netcompany since December 2020
+** Various Modulus projects
+** Covid tracking tool - Smitte|stop
+** Currently working on FIFA projects
+* Hacker wanna-be
+//* Author of small coding/security blog - https://matishadow-blog.gear.host/posts/[link]
+//* All other links https://about.me/matishadow[here]
+--
+
+== !
+
+image::nc-map.png[background, size=cover]
+
+== Assumptions
+
+* You know .NET Core image:dotnet.png[70,70,float="right"]
+* You wrote at least a couple of unit tests image:xunit-logo.png[160,160,float="right"]
+* You have an open mind image:open-mind.jpg[100,100,float="right"]
+
+=== Poll 🗳️ — Have you written at least a couple of unit tests?
+
+[loweralpha]
+. I have never written any unit tests
+. I have written a couple of unit tests
+. I have written a lot of unit tests
+
+== Agenda
+
+. Key takeaways ❗
+. But why do we need tests? 🤔
+. Characteristics of classic unit tests 🏺
+. Problems with classic unit tests 😬
+. Band-aids 🩹
+//. 'Good developers write bad tests'
+. Benefits of TDD flow 🌀
+
+== Key takeaways ❗
+
+[%step]
+* Write a test when a new requirement comes, not when you create new class/method.
+* Use encapsulation in a module. Keep implementation details in internal classes, test only public ones.
+* Use mocks only when super necessary i.e., with databases, network, files etc.
+
+=== !
+
+[%step]
+* TDD lets you focus on one thing at a time. First working solution then good design.
+* Good test shouldn't break when refactoring the code.
+* Isolate tests from each other, not classes.
+* When using hexagonal architecture test only ports/use cases.
+
+== Glossary 📖
+
+[%step]
+* Refactoring - Changing implementation details without changing the behavior.
+* TDD (Test-driven development) - Approach in which first you write failing test,
+  then you write ugly code to make it pass, and then you refactor the code to make it less ugly.
+* BDD (Behavior-driven development) - TDD focused on the customer reviewing tests with tools like `Cucumber`.
+
+== But why do we need tests? 🤔
+
+=== Certainty that the project works
+image::https://i.imgur.com/BNUw2OU.png[]
+
+=== Less time testing manually
+image::https://i.stack.imgur.com/uq7Gh.png[]
+
+=== Safe refactoring
+
+.https://xkcd.com/292/[xkcd - Goto]
+image::refactor-xkcd.png[]
+
+=== !
+
+[source, csharp, indent=0, highlight='1..*|8']
+----
+        public virtual decimal GetDiscountAmount(Discount discount, decimal amount)
+        {
+            if (discount == null)
+                throw new ArgumentNullException(nameof(discount));
+
+            decimal result;
+            if (discount.UsePercentage)
+                result = (decimal)((float)amount * (float)discount.DiscountPercentage / 100f);
+            else
+                result = discount.DiscountAmount;
+
+            if (discount.UsePercentage &&
+                discount.MaximumDiscountAmount.HasValue &&
+                result > discount.MaximumDiscountAmount.Value)
+                result = discount.MaximumDiscountAmount.Value;
+
+            if (result < decimal.Zero)
+                result = decimal.Zero;
+
+            return result;
+        }
+----
+
+=== !
+
+[source, csharp, indent=0]
+----
+        private static decimal CalculateDiscountPercentage(Discount discount, decimal amount)
+        {
+            return (decimal)((float)amount * (float)discount.DiscountPercentage / 100f);
+        }
+----
+
+=== !
+
+[source, csharp, indent=0, highlight='1..*|8']
+----
+        public virtual decimal GetDiscountAmount(Discount discount, decimal amount)
+        {
+            if (discount == null)
+                throw new ArgumentNullException(nameof(discount));
+
+            decimal result;
+            if (discount.UsePercentage)
+                result = CalculateDiscountPercentage(discount, amount);
+            else
+                result = discount.DiscountAmount;
+
+            if (discount.UsePercentage &&
+                discount.MaximumDiscountAmount.HasValue &&
+                result > discount.MaximumDiscountAmount.Value)
+                result = discount.MaximumDiscountAmount.Value;
+
+            if (result < decimal.Zero)
+                result = decimal.Zero;
+
+            return result;
+        }
+
+        private static decimal CalculateDiscountPercentage(Discount discount, decimal amount)
+        {
+            return (decimal)((float)amount * (float)discount.DiscountPercentage / 100f);
+        }
+----
+
+=== !
+
+[source,csharp, indent=0, , highlight='1..*|2']
+----
+        [Test]
+        public void CanCalculateDiscountAmountPercentage()
+        {
+            var discount = new Discount { UsePercentage = true, DiscountPercentage = 30 };
+
+            _discountService.GetDiscountAmount(discount, 100).Should().Be(30);
+
+            discount.DiscountPercentage = 60;
+            _discountService.GetDiscountAmount(discount, 200).Should().Be(120);
+        }
+----
+
+=== !
+image::https://i.imgur.com/I6xU63F.png[]
+
+=== Good tests are living documentation
+
+[source, csharp, indent=0, highlight='1..*|8|7|11|13..15|17..18']
+----
+        [Test]
+        public void MaximumDiscountAmountIsUsed()
+        {
+            var discount = new Discount
+            {
+                UsePercentage = true,
+                DiscountPercentage = 30,
+                MaximumDiscountAmount = 3.4M
+            };
+
+            _discountService.GetDiscountAmount(discount, 100).Should().Be(3.4M);
+
+            discount.DiscountPercentage = 60;
+            _discountService.GetDiscountAmount(discount, 200).Should().Be(3.4M);
+            _discountService.GetDiscountAmount(discount, 100).Should().Be(3.4M);
+
+            discount.DiscountPercentage = 1;
+            discount.GetDiscountAmount(200).Should().Be(2);
+        }
+----
+
+== Characteristics of classic unit tests 🏺
+
+=== Classes isolated from each other
+
+[source, csharp, indent=0, highlight='1..*|2..11']
+----
+        public DiscountService(
+            ICustomerService customerService,
+            IDiscountPluginManager discountPluginManager,
+            ILocalizationService localizationService,
+            IProductService productService,
+            IRepository<Discount> discountRepository,
+            IRepository<DiscountRequirement> discountRequirementRepository,
+            IRepository<DiscountUsageHistory> discountUsageHistoryRepository,
+            IRepository<Order> orderRepository,
+            IStaticCacheManager staticCacheManager,
+            IStoreContext storeContext)
+        {
+            _customerService = customerService;
+            _discountPluginManager = discountPluginManager;
+            _localizationService = localizationService;
+            _productService = productService;
+            _discountRepository = discountRepository;
+            _discountRequirementRepository = discountRequirementRepository;
+            _discountUsageHistoryRepository = discountUsageHistoryRepository;
+            _orderRepository = orderRepository;
+            _staticCacheManager = staticCacheManager;
+            _storeContext = storeContext;
+        }
+----
+
+=== Mocked all class dependencies
+
+[source, csharp, indent=0, highlight='1..*|5..14']
+----
+        [Test]
+        public void CanCalculateDiscountAmountPercentage()
+        {
+            var discountService = new DiscountService(
+                new Mock<ICustomerService>().Object,
+                new Mock<IDiscountPluginManager>().Object,
+                new Mock<ILocalizationService>().Object,
+                new Mock<IProductService>().Object,
+                new Mock<IRepository<Discount>>().Object,
+                new Mock<IRepository<DiscountRequirement>>().Object,
+                new Mock<IRepository<DiscountUsageHistory>>().Object,
+                new Mock<IRepository<Order>>().Object,
+                new Mock<IStaticCacheManager>().Object,
+                new Mock<IStoreContext>().Object);
+            var discount = new Discount { UsePercentage = true, DiscountPercentage = 30 };
+
+            discountService.GetDiscountAmount(discount, 100).Should().Be(30);
+
+            discount.DiscountPercentage = 60;
+            discountService.GetDiscountAmount(discount, 200).Should().Be(120);
+
+----
+
+=== Each class tested separately
+
+image::isolation.png[]
+
+=== Code coverage as important metric
+
+image::code-coverage.png[]
+
+=== Poll 🗳️ — Do you write tests in this way?
+
+== Problems with classic unit tests 😬
+
+=== It takes too much time to write tests for every class
+
+image::manager-meme.jpg[700, 500]
+
+=== It takes too much time to mock all class dependencies
+
+=== !
+
+[source,csharp, indent=0, highlight='1..*|6..9|11..14|16..19|21..23|25..30']
+----
+        [Test]
+        public void CanCalculateDiscountAmountPercentage()
+        {
+            var discount = new Discount { UsePercentage = true, DiscountPercentage = 30 };
+
+            var customerServiceMock = new Mock<ICustomerService>();
+            customerServiceMock.Setup(
+                    m => m.GetCustomerDefaultTaxDisplayTypeAsync(It.IsAny<Customer>()))
+                .ReturnsAsync(TaxDisplayType.IncludingTax);
+
+            var discountPluginManagerMock = new Mock<IDiscountPluginManager>();
+            discountPluginManagerMock.Setup(
+                    m => m.IsPluginActive(It.IsAny<IDiscountRequirementRule>(), It.IsAny<List<string>>()))
+                .Returns(true);
+
+            var localizationServiceMock = new Mock<ILocalizationService>();
+            localizationServiceMock.Setup(
+                    m => m.GetResourceAsync("discountKey"))
+                .ReturnsAsync("Discount");
+
+            var discountRepositoryMock = new Mock<IRepository<Discount>>();
+            discountRepositoryMock.Setup(m => m.GetAll(null, null, true))
+                .Returns(new List<Discount> { discount });
+
+            var productServiceMock = new Mock<IProductService>();
+            var discountRequirementRepositoryMock = new Mock<IRepository<DiscountRequirement>>();
+            var discountUsageHistoryRepositoryMock = new Mock<IRepository<DiscountUsageHistory>>();
+            var orderRepositoryMock = new Mock<IRepository<Order>>();
+            var staticCacheManagerMock = new Mock<IStaticCacheManager>();
+            var storeContextMock = new Mock<IStoreContext>();
+
+            var discountService = new DiscountService(
+                customerServiceMock.Object,
+                discountPluginManagerMock.Object,
+                localizationServiceMock.Object,
+                productServiceMock.Object,
+                discountRepositoryMock.Object,
+                discountRequirementRepositoryMock.Object,
+                discountUsageHistoryRepositoryMock.Object,
+                orderRepositoryMock.Object,
+                staticCacheManagerMock.Object,
+                storeContextMock.Object);
+
+            discountService.GetDiscountAmount(discount, 100).Should().Be(30);
+        }
+----
+
+=== Tests break with each refactoring because of mocks
+
+=== !
+
+[source,csharp, indent=0, highlight='1..*|12']
+----
+        public DiscountService(
+            ICustomerService customerService,
+            IDiscountPluginManager discountPluginManager,
+            ILocalizationService localizationService,
+            IProductService productService,
+            IRepository<Discount> discountRepository,
+            IRepository<DiscountRequirement> discountRequirementRepository,
+            IRepository<DiscountUsageHistory> discountUsageHistoryRepository,
+            IRepository<Order> orderRepository,
+            IStaticCacheManager staticCacheManager,
+            IStoreContext storeContext,
+            IRepository<Country> countryRepository)
+        {
+            _customerService = customerService;
+            _discountPluginManager = discountPluginManager;
+            _localizationService = localizationService;
+            _productService = productService;
+            _discountRepository = discountRepository;
+            _discountRequirementRepository = discountRequirementRepository;
+            _discountUsageHistoryRepository = discountUsageHistoryRepository;
+            _orderRepository = orderRepository;
+            _staticCacheManager = staticCacheManager;
+            _storeContext = storeContext;
+            _countryRepository = countryRepository;
+        }
+----
+
+=== !
+image::fail-after-refactor-2.png[]
+
+=== !
+image::fail-after-refactor-1.png[]
+
+=== Tests being green despite not meeting business requirements
+
+=== !
+
+[source, csharp, indent=0]
+----
+        public static decimal CalculateDiscountPercentage(Discount discount, decimal amount)
+        {
+            return (decimal)((float)amount * (float)discount.DiscountPercentage / 100f);
+        }
+----
+
+=== !
+
+[source, csharp, indent=0]
+----
+        [Test]
+        public void CanCalculateDiscountPercentage()
+        {
+            var discount = new Discount { UsePercentage = true, DiscountPercentage = 30 };
+
+            DiscountService.DiscountDiscountPercentage(discount, 100).Should().Be(30);
+        }
+----
+
+=== !
+image::being-green.png[]
+
+=== Have you had any of these problems? 💬
+
+Write them in the chat if you had.
+
+== Band-aids 🩹
+
+=== Isolate tests, so they don't use the same resource e.g., database
+
+[quote, Wikipedia]
+____
+To isolate issues that may arise, each test case should be tested independently.
+____
+
+=== Don't isolate classes from each other
+
+=== !
+[source,csharp, indent=0]
+----
+        [OneTimeSetUp]
+        public void SetUp()
+        {
+            _discountPluginManager = GetService<IDiscountPluginManager>();
+            _discountService = GetService<IDiscountService>();
+        }
+----
+
+=== Don't mock dependencies within a module, `new` them up or use `IoC` in the test
+
+=== !
+
+[source,csharp, indent=0]
+----
+    public abstract class BaseNopTest
+    {
+        private static readonly ServiceProvider _serviceProvider;
+
+        public T GetService<T>()
+        {
+            try
+            {
+                return _serviceProvider.GetRequiredService<T>();
+            }
+            catch (InvalidOperationException)
+            {
+                return (T)EngineContext.Current.ResolveUnregistered(typeof(T));
+            }
+        }
+    }
+----
+
+=== Use mocks only with external dependencies like files, databases, web
+
+=== !
+
+[source,csharp,indent=0, highlight='1..*|4..16|18..21']]
+----
+        [OneTimeSetUp]
+        public void SetUp()
+        {
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            handlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage()
+                {
+                    StatusCode = HttpStatusCode.OK, Content = new StringContent("[{'id':1,'value':'1'}]"),
+                });
+            var httpClient = new HttpClient(handlerMock.Object);
+
+            _services.AddSingleton(httpClient);
+            var serviceProvider = _services.BuildServiceProvider();
+            _discountPluginManager = serviceProvider.GetService<IDiscountPluginManager>();
+            _discountService = serviceProvider.GetService<IDiscountService>();
+        }
+----
+
+=== Treat module as an API, test only public classes it exposes
+image::api.png[]
+
+=== Use `internal` classes for implementation details and don't test them
+image::internal.svg[900, 700]
+
+[.columns]
+=== Write one test per one requirement
+
+[.column]
+--
+image::github-requirement.png[]
+--
+
+[.column]
+--
+image::test-per-requirement.png[]
+--
+
+=== Give tests names, which convey what business requirement is under test
+
+=== !
+[%step]
+* `IsDeliveryValid_InvalidDate_ReturnsFalse()` ❌
+* `Delivery_with_a_past_date_is_invalid()` ✅
+* `Add_credit_updates_customer_balance` ✅
+* `Purchase_without_funds_is_not_possible` ✅
+* `Add_affiliate_discount` ✅
+
+== Benefits of TDD flow 🌀
+
+image::tdd.jpg[800, 600]
+
+=== Red-Green-Refactor
+
+image::red-green-refactor.jpeg[]
+
+=== Our brain cannot focus on two things at once
+
+image::multitasking.gif[]
+
+//== Things to talk about
+//. link and qr code at the end
+
+== Recommendations 🧭
+
+=== 🚀 DevTernity 2017: Ian Cooper - TDD, Where Did It All Go Wrong
+video::EZ05e7EMOLM[youtube]
+
+=== https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530['Test Driven Development: By Example' by Kent Beck]
+
+image::kent-beck.jpg[height=220px]
+
+https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530[]
+
+=== https://mtlynch.io/good-developers-bad-tests/[Why Good Developers Write Bad Unit Tests]
+
+image::good-developers-write-bad-tests.jpg[]
+
+https://mtlynch.io/good-developers-bad-tests/[]
+
+== Questions?
+
+Time to ask them now!
+
+[.columns]
+== Links ⚓
+
+[.column]
+--
+* Link to presentation:
++
+https://bit.ly/mtra-unit-tests
+* Link to repository:
++
+https://github.com/nopSolutions/nopCommerce
+--
+
+[.column]
+--
+.QR code to the presentation
+image::qr.svg[400,400]
+--
+
+
+
+//== TODO
+//. include repo link
+//. still think of visuals

@@ -1,8 +1,18 @@
 body {
-    background-image: url('logo.png');
+    background-image: url('images/Netcompany_darkblue.png');
     background-repeat: no-repeat;
-    background-position: left 10px bottom 10px;
+    background-position: left 30px bottom 30px;
     background-size: 15%;
+}
+
+.reveal section img{
+    border: 0;
+    margin: 0;
+    vertical-align: middle;
+}
+
+.reveal .slides section .fragment.visible{
+    max-height: 410px;
 }
 
 .reveal {
