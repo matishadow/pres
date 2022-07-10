@@ -1,4 +1,4 @@
-= How not to write tests — 'Unit' Testing in .NET
+= Blazor 101
 :revealjs_theme: white
 :icons: font
 :revealjs_slideNumber: c/t
@@ -7,15 +7,48 @@
 :source-highlighter: highlightjs
 :revealjs_width: 1400
 :revealjs_hash: true
-:imagesdir: images
+:imagesdir: images/blaz
 :highlightjs-theme: vs2015.css
 :revealjsdir: https://cdn.jsdelivr.net/npm/reveal.js@3.9.2
 
-Revising classic approach to unit testing and finding pitfalls in it.
-Improving code and tests based on TDD and BDD approaches.
+How to develop SPAs when you hate JavaScript.
+
+== Agenda
+
+. What is Blazor?
+. Types of Blazor projects
+. Blazor vs Razor
+. Blazor vs React
+. How to host Blazor?
+. Blazor Server Demo
+. Blazor WebAssembly Demo
+
+== What is Blazor?
+
+Blazor = Browser + Razor
+
+Technology for building SPAs (Single Page Applications) in C#.
 
 [.columns]
-== $ whoami
+== Types of Blazor projects
+
+. Blazor Server
+. Blazor WebAssembly
+. Blazor Hybrid
+
+=== Blazor Server
+
+image::BlazorServerSide.jpg[]
+
+=== Blazor WebAssembly
+
+image::BrowserWasmBlazor.jpg[]
+
+=== Blazor MAUI
+
+image::BlazorHybrid.svg[]
+
+=== Comparison
 
 [.column]
 --
@@ -51,15 +84,6 @@ image::nc-map.png[background, size=cover]
 . I have written a couple of unit tests
 . I have written a lot of unit tests
 
-== Agenda
-
-. Key takeaways ❗
-. But why do we need tests? 🤔
-. Characteristics of classic unit tests 🏺
-. Problems with classic unit tests 😬
-. Band-aids 🩹
-//. 'Good developers write bad tests'
-. Benefits of TDD flow 🌀
 
 == Key takeaways ❗
 

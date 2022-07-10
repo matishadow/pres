@@ -1,0 +1,10 @@
+== TODO
+* [ ] what is blazor?
+* [ ] List of content
+* [ ] compare server + client + mention MAUI
+* [ ] show syntax and compare to MVC Razor
+* [ ] compare react and blazor
+* [ ] app in server contenful images
+* [ ] app in client contentful images + js interop regex
+* [ ] hostings
+* [ ] host pres + QR code
